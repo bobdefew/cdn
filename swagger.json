@@ -1,0 +1,331 @@
+{
+  "swagger" : "2.0",
+  "info" : {
+    "description" : "Ability to Create, Read, Update, and Delete files from the SAN or CDN.",
+    "version" : "1.0.0",
+    "title" : "CDN",
+    "contact" : { }
+  },
+  "host" : "pf2.performancefit.com",
+  "basePath" : "/cdn/v1",
+  "schemes" : [ "https" ],
+  "consumes" : [ "application/json", "multipart/form-data" ],
+  "produces" : [ "application/json", "multipart/form-data" ],
+  "security" : [ {
+    "JWT" : [ ]
+  } ],
+  "paths" : {
+    "/files" : {
+      "get" : {
+        "summary" : "List files",
+        "description" : "Retrieve list of most current version of files",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "pgstart",
+          "in" : "query",
+          "required" : false,
+          "type" : "number",
+          "description" : "Initial item/offset; negative numbers start from the end backwards (e.g. pgstart=-10&pglen=-1 would give the last 10 items).",
+          "default" : 0.0,
+          "x-example" : 0.0
+        }, {
+          "name" : "pglen",
+          "in" : "query",
+          "required" : false,
+          "type" : "number",
+          "description" : "The number of items to return in the page; a length of -1 means return all items.",
+          "default" : 10.0,
+          "x-example" : 100.0
+        }, {
+          "name" : "showDeleted",
+          "in" : "query",
+          "required" : false,
+          "type" : "boolean",
+          "description" : "Set this to true to show deleted entries.",
+          "default" : false
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Status 200",
+            "schema" : {
+              "type" : "object",
+              "properties" : {
+                "Files" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/definitions/CdnFile"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "summary" : "Create a file",
+        "description" : "Multipart upload with two upload parts:\n1. JSON describing the file\n2. The actual file upload",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "multipart/form-data", "application/json" ],
+        "parameters" : [ {
+          "name" : "body",
+          "in" : "body",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/CdnFile"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Status 200",
+            "schema" : {
+              "$ref" : "#/definitions/CdnFile"
+            }
+          },
+          "400" : {
+            "description" : "Missing values",
+            "schema" : {
+              "$ref" : "#/definitions/Error"
+            },
+            "examples" : {
+              "application/json" : "{\"code\":\"PFERR-ALL-001\", \"desc\":\"Fields values are invalid or missing.\", \"fields\":[]}"
+            }
+          }
+        }
+      }
+    },
+    "/files/{id}" : {
+      "get" : {
+        "summary" : "Get all versions of a file",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "showDeleted",
+          "in" : "query",
+          "required" : false,
+          "type" : "boolean",
+          "description" : "Set this to true to show deleted entries.",
+          "default" : false
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "When versioned objects are requested",
+            "schema" : {
+              "$ref" : "#/definitions/VersionedCdnFile"
+            }
+          }
+        }
+      },
+      "delete" : {
+        "summary" : "Delete all file versions",
+        "description" : "Mark all file versions as deleted.",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "Status 200"
+          }
+        }
+      },
+      "parameters" : [ {
+        "name" : "id",
+        "in" : "path",
+        "required" : true,
+        "type" : "string",
+        "description" : "UUID"
+      } ]
+    },
+    "/files/{id}/{vid}" : {
+      "get" : {
+        "summary" : "Get a file",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "showDeleted",
+          "in" : "query",
+          "required" : false,
+          "type" : "boolean",
+          "description" : "Set this to true to show deleted entries.",
+          "default" : false
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "When versioned objects are requested",
+            "schema" : {
+              "$ref" : "#/definitions/CdnFile"
+            }
+          }
+        }
+      },
+      "put" : {
+        "summary" : "Update a file",
+        "description" : "Since files are immutable, this will create a new version of a file.  The current latest version will be added to the versions array and the provided file will overwrite the latest.",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "body",
+          "in" : "body",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/CdnFile"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "When versioned objects are requested",
+            "schema" : {
+              "$ref" : "#/definitions/CdnFile"
+            }
+          }
+        }
+      },
+      "delete" : {
+        "summary" : "Delete a file",
+        "description" : "Mark the file version as deleted.",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "Status 200"
+          }
+        }
+      },
+      "parameters" : [ {
+        "name" : "id",
+        "in" : "path",
+        "required" : true,
+        "type" : "string",
+        "description" : "The ID",
+        "x-example" : "033567bd-6ef7-40fa-9337-a53db6f38e94"
+      }, {
+        "name" : "vid",
+        "in" : "path",
+        "required" : true,
+        "type" : "string",
+        "description" : "The version ID or LATEST to get the most recent version.",
+        "x-example" : "033567bd-6ef7-40fa-9337-a53db6f38e94"
+      } ]
+    },
+    "/files/{id}/{vid}/content" : {
+      "get" : {
+        "summary" : "Download a file",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "Status 200",
+            "schema" : {
+              "type" : "string",
+              "format" : "binary",
+              "description" : "The content type will be determioned by the type of file or metadata provided."
+            }
+          }
+        }
+      },
+      "parameters" : [ {
+        "name" : "id",
+        "in" : "path",
+        "required" : true,
+        "type" : "string"
+      }, {
+        "name" : "vid",
+        "in" : "path",
+        "required" : true,
+        "type" : "string"
+      } ]
+    }
+  },
+  "securityDefinitions" : {
+    "JWT" : {
+      "description" : "JSON Web Token (JWT) sent either as a cookie or in the Authorization header as a bearer token",
+      "type" : "apiKey",
+      "name" : "Authorization",
+      "in" : "header"
+    }
+  },
+  "definitions" : {
+    "Error" : {
+      "type" : "object",
+      "required" : [ "errors" ],
+      "properties" : {
+        "errors" : {
+          "type" : "array",
+          "description" : "This must contain one or more errors in the errors array.",
+          "items" : {
+            "required" : [ "code" ],
+            "type" : "object",
+            "properties" : {
+              "code" : {
+                "type" : "string",
+                "description" : "See examples for documentation on each specific error message.",
+                "enum" : [ "PFERR-CDN-001", "PFERR-CDN-002" ]
+              },
+              "desc" : {
+                "type" : "string",
+                "description" : "Describes the error code for debugging purposes. This will not be returned in production environments. See examples for documentation on each specific error message."
+              },
+              "fields" : {
+                "type" : "array",
+                "description" : "All fields that failed validation.",
+                "items" : {
+                  "type" : "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "description" : "Defines a standard error response object.",
+      "example" : "{\n    \"errors\": [\n        {\"code\":\"PFERR-ALL-001\", \"desc\":\"Fields values are invalid or missing.\", \"fields\":[]},\n        {\"code\":\"PFERR-CDN-001\", \"desc\":\"description of error 001\"},\n        {\"code\":\"PFERR-CDN-002\", \"desc\":\"description of error 002\"}\n    ]\n}"
+    },
+    "CdnFile" : {
+      "type" : "object",
+      "required" : [ "secure" ],
+      "properties" : {
+        "_id" : {
+          "type" : "string",
+          "description" : "ID of the file"
+        },
+        "type" : {
+          "type" : "string",
+          "description" : "mime-type of the file"
+        },
+        "version" : {
+          "type" : "string",
+          "description" : "Version of the file"
+        },
+        "url" : {
+          "type" : "string",
+          "description" : "Url path to the file"
+        },
+        "view_style" : {
+          "type" : "integer",
+          "description" : "How to display the file.  0 for Download, 1 for stream"
+        },
+        "secure" : {
+          "type" : "boolean",
+          "description" : "Is the file secure?"
+        },
+        "delete_flag" : {
+          "type" : "boolean",
+          "description" : "Flag for deletion?",
+          "default" : false
+        }
+      },
+      "description" : "File info for files stored in CDN"
+    },
+    "VersionedCdnFile" : {
+      "type" : "object",
+      "properties" : {
+        "_id" : {
+          "type" : "string"
+        },
+        "latest" : {
+          "$ref" : "#/definitions/CdnFile"
+        },
+        "previousVersions" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/CdnFile"
+          }
+        }
+      },
+      "description" : "A wrapper for versioned data types.",
+      "example" : "{\n\t\"_id\": \"033567bd-6ef7-40fa-9337-a53db6f38e94\",\n\t\"latest\": {\n\t\t\"_id\": \"033567bd-6ef7-40fa-9337-a53db6f38e94\",\n\t\t\"customerId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9a\",\n\t\t\"title\": \"My Purchase Order\",\n\t\t\"description\": \"My description....\",\n\t\t\"amount\": 1000000.00,\n\t\t\"lineItems\": [{\n\t\t\t\t\"productId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9b\",\n\t\t\t\t\"quantity\": 3,\n\t\t\t\t\"amount\": 300000.00,\n\t\t\t\t\"total\": 900000.00\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"productId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9c\",\n\t\t\t\t\"quantity\": 1,\n\t\t\t\t\"amount\": 100000.00,\n\t\t\t\t\"total\": 100000.00\n\t\t\t}\n\t\t],\n\t\t\"created\": \"2014-03-30T11:23:01.000Z\"\n\t},\n\t\"previousVersions\": [{\n\t\t\t\"_id\": \"133567bd-6ef7-40fa-9337-a53db6f38e94\",\n\t\t\t\"customerId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9a\",\n\t\t\t\"title\": \"My Purchase Order\",\n\t\t\t\"description\": \"My description....\",\n\t\t\t\"amount\": 900000.00,\n\t\t\t\"lineItems\": [{\n\t\t\t\t\"productId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9b\",\n\t\t\t\t\"quantity\": 3,\n\t\t\t\t\"amount\": 300000.00,\n\t\t\t\t\"total\": 900000.00\n\t\t\t}],\n\t\t\t\"created\": \"2014-03-30T11:23:01.000Z\"\n\t\t},\n\t\t{\n\t\t\t\"_id\": \"233567bd-6ef7-40fa-9337-a53db6f38e94\",\n\t\t\t\"customerId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9a\",\n\t\t\t\"title\": \"My Purchase Order\",\n\t\t\t\"description\": \"My description....\",\n\t\t\t\"amount\": 700000.00,\n\t\t\t\"lineItems\": [{\n\t\t\t\t\t\"productId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9b\",\n\t\t\t\t\t\"quantity\": 3,\n\t\t\t\t\t\"amount\": 200000.00,\n\t\t\t\t\t\"total\": 600000.00\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"productId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9c\",\n\t\t\t\t\t\"quantity\": 1,\n\t\t\t\t\t\"amount\": 100000.00,\n\t\t\t\t\t\"total\": 100000.00\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"created\": \"2014-03-30T11:23:01.000Z\"\n\t\t},\n\t\t{\n\t\t\t\"_id\": \"333567bd-6ef7-40fa-9337-a53db6f38e94\",\n\t\t\t\"customerId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9a\",\n\t\t\t\"title\": \"My Purchase Order\",\n\t\t\t\"description\": \"My description....\",\n\t\t\t\"amount\": 1000001.00,\n\t\t\t\"lineItems\": [{\n\t\t\t\t\t\"productId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9b\",\n\t\t\t\t\t\"quantity\": 3,\n\t\t\t\t\t\"amount\": 300000.00,\n\t\t\t\t\t\"total\": 900000.00\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"productId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9c\",\n\t\t\t\t\t\"quantity\": 1,\n\t\t\t\t\t\"amount\": 100001.00,\n\t\t\t\t\t\"total\": 100001.00\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"created\": \"2014-03-30T11:23:01.000Z\"\n\t\t}\n\t]\n}"
+    }
+  }
+}
