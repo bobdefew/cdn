@@ -79,6 +79,9 @@
             "description" : "Status 200",
             "schema" : {
               "$ref" : "#/definitions/CdnFile"
+            },
+            "examples" : {
+              "multipart/form-data" : "{\n  \"_id\": \"58cf417f-20ee-47f0-884a-e286e6400046\",\n  \"type\"\": \"image/png\",\n  \"version\": \"1\",\n  \"url\"\": \"/files/file1_1.png\",\n  \"view_style\": 0,\n  \"secure\": false,\n  \"delete_flag\": false\n}"
             }
           },
           "400" : {
@@ -87,7 +90,7 @@
               "$ref" : "#/definitions/Error"
             },
             "examples" : {
-              "application/json" : "{\"code\":\"PFERR-ALL-001\", \"desc\":\"Fields values are invalid or missing.\", \"fields\":[]}"
+              "application/json" : "{\"code\":\"PFERR-ALL-001\", \"desc\":\"Fields values are invalid or missing.\", \"fields\":[\"type\",\"secure\",\"delete_flag\",\"file\"]}"
             }
           }
         }
@@ -114,13 +117,61 @@
           }
         }
       },
+      "put" : {
+        "summary" : "Update a file",
+        "description" : "Since files are immutable, this will create a new version of a file.  The current latest version will be added to the versions array and the provided file will overwrite the latest.",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "body",
+          "in" : "body",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/CdnFile"
+          },
+          "x-examples" : {
+            "application/json" : "{\n  \"_id\": \"58cf417f-20ee-47f0-884a-e286e6400046\",\n  \"type\"\": \"image/png\",\n  \"version\": \"2\",\n  \"url\"\": \"/files/file1_2.png\",\n  \"view_style\": 0,\n  \"secure\": false,\n  \"delete_flag\": false\n}"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "When versioned objects are requested",
+            "schema" : {
+              "$ref" : "#/definitions/CdnFile"
+            }
+          },
+          "400" : {
+            "description" : "Missing or invalid field values",
+            "schema" : {
+              "$ref" : "#/definitions/Error"
+            },
+            "examples" : {
+              "application/json" : "{\"code\":\"PFERR-ALL-001\", \"desc\":\"Fields values are invalid or missing.\", \"fields\":[\"type\",\"secure\",\"delete_flag\",\"file\"]}"
+            }
+          }
+        }
+      },
       "delete" : {
         "summary" : "Delete all file versions",
         "description" : "Mark all file versions as deleted.",
+        "produces" : [ "application/json" ],
         "parameters" : [ ],
         "responses" : {
           "200" : {
-            "description" : "Status 200"
+            "description" : "Status 200",
+            "schema" : {
+              "required" : [ "result" ],
+              "type" : "object",
+              "properties" : {
+                "result" : {
+                  "type" : "string",
+                  "enum" : [ "SUCCESS" ]
+                }
+              }
+            },
+            "examples" : {
+              "application/json" : "{\"result\":\"SUCCESS\"}"
+            }
           }
         }
       },
@@ -153,35 +204,27 @@
           }
         }
       },
-      "put" : {
-        "summary" : "Update a file",
-        "description" : "Since files are immutable, this will create a new version of a file.  The current latest version will be added to the versions array and the provided file will overwrite the latest.",
-        "consumes" : [ "application/json" ],
-        "produces" : [ "application/json" ],
-        "parameters" : [ {
-          "name" : "body",
-          "in" : "body",
-          "required" : true,
-          "schema" : {
-            "$ref" : "#/definitions/CdnFile"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "When versioned objects are requested",
-            "schema" : {
-              "$ref" : "#/definitions/CdnFile"
-            }
-          }
-        }
-      },
       "delete" : {
         "summary" : "Delete a file",
         "description" : "Mark the file version as deleted.",
+        "produces" : [ "application/json" ],
         "parameters" : [ ],
         "responses" : {
           "200" : {
-            "description" : "Status 200"
+            "description" : "Status 200",
+            "schema" : {
+              "required" : [ "result" ],
+              "type" : "object",
+              "properties" : {
+                "result" : {
+                  "type" : "string",
+                  "enum" : [ "SUCCESS" ]
+                }
+              }
+            },
+            "examples" : {
+              "application/json" : "{\"result\":\"SUCCESS\"}"
+            }
           }
         }
       },
@@ -212,6 +255,12 @@
               "type" : "string",
               "format" : "binary",
               "description" : "The content type will be determioned by the type of file or metadata provided."
+            },
+            "headers" : {
+              "Content-Disposition" : {
+                "type" : "string",
+                "x-example" : "Content-disposition: attachment; filename=file1_4.png;"
+              }
             }
           }
         }
@@ -274,39 +323,43 @@
     },
     "CdnFile" : {
       "type" : "object",
-      "required" : [ "secure" ],
       "properties" : {
         "_id" : {
-          "type" : "string",
-          "description" : "ID of the file"
-        },
-        "type" : {
-          "type" : "string",
-          "description" : "mime-type of the file"
+          "type" : "string"
         },
         "version" : {
-          "type" : "string",
-          "description" : "Version of the file"
+          "type" : "string"
         },
-        "url" : {
-          "type" : "string",
-          "description" : "Url path to the file"
+        "mimeType" : {
+          "type" : "string"
         },
-        "view_style" : {
-          "type" : "integer",
-          "description" : "How to display the file.  0 for Download, 1 for stream"
+        "disposition" : {
+          "type" : "string"
         },
         "secure" : {
-          "type" : "boolean",
-          "description" : "Is the file secure?"
+          "type" : "boolean"
         },
-        "delete_flag" : {
-          "type" : "boolean",
-          "description" : "Flag for deletion?",
-          "default" : false
+        "url" : {
+          "type" : "string"
+        },
+        "deleted" : {
+          "type" : "boolean"
+        },
+        "created" : {
+          "type" : "string"
+        },
+        "createdBy" : {
+          "type" : "string"
+        },
+        "modified" : {
+          "type" : "string"
+        },
+        "modifiedBy" : {
+          "type" : "string"
         }
       },
-      "description" : "File info for files stored in CDN"
+      "description" : "File info for files stored in CDN",
+      "example" : "{\n    \"version\": \"1a3cc53e-5935-4366-a233-a22aa7840773\",\n    \"mimeType\": \"text/vtt\",\n    \"disposition\": \"inline\",\n    \"secure\": true,\n    \"url\": \"http://localhost:3000/cdn/content/77ddb2a9-dcc1-490d-8d35-25202a0bcea0/1a3cc53e-5935-4366-a233-a22aa7840773\",\n    \"deleted\": false,\n    \"modified\": \"2018-01-29T17:56:08.177Z\",\n    \"modifiedBy\": \"02d29ccd-70b6-4a88-a775-d68bc0b1cf66\",\n    \"_id\": \"77ddb2a9-dcc1-490d-8d35-25202a0bcea0\",\n    \"created\": \"2018-01-29T17:56:08.177Z\",\n    \"createdBy\": \"02d29ccd-70b6-4a88-a775-d68bc0b1cf66\"\n}"
     },
     "VersionedCdnFile" : {
       "type" : "object",
@@ -325,7 +378,7 @@
         }
       },
       "description" : "A wrapper for versioned data types.",
-      "example" : "{\n\t\"_id\": \"033567bd-6ef7-40fa-9337-a53db6f38e94\",\n\t\"latest\": {\n\t\t\"_id\": \"033567bd-6ef7-40fa-9337-a53db6f38e94\",\n\t\t\"customerId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9a\",\n\t\t\"title\": \"My Purchase Order\",\n\t\t\"description\": \"My description....\",\n\t\t\"amount\": 1000000.00,\n\t\t\"lineItems\": [{\n\t\t\t\t\"productId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9b\",\n\t\t\t\t\"quantity\": 3,\n\t\t\t\t\"amount\": 300000.00,\n\t\t\t\t\"total\": 900000.00\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"productId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9c\",\n\t\t\t\t\"quantity\": 1,\n\t\t\t\t\"amount\": 100000.00,\n\t\t\t\t\"total\": 100000.00\n\t\t\t}\n\t\t],\n\t\t\"created\": \"2014-03-30T11:23:01.000Z\"\n\t},\n\t\"previousVersions\": [{\n\t\t\t\"_id\": \"133567bd-6ef7-40fa-9337-a53db6f38e94\",\n\t\t\t\"customerId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9a\",\n\t\t\t\"title\": \"My Purchase Order\",\n\t\t\t\"description\": \"My description....\",\n\t\t\t\"amount\": 900000.00,\n\t\t\t\"lineItems\": [{\n\t\t\t\t\"productId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9b\",\n\t\t\t\t\"quantity\": 3,\n\t\t\t\t\"amount\": 300000.00,\n\t\t\t\t\"total\": 900000.00\n\t\t\t}],\n\t\t\t\"created\": \"2014-03-30T11:23:01.000Z\"\n\t\t},\n\t\t{\n\t\t\t\"_id\": \"233567bd-6ef7-40fa-9337-a53db6f38e94\",\n\t\t\t\"customerId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9a\",\n\t\t\t\"title\": \"My Purchase Order\",\n\t\t\t\"description\": \"My description....\",\n\t\t\t\"amount\": 700000.00,\n\t\t\t\"lineItems\": [{\n\t\t\t\t\t\"productId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9b\",\n\t\t\t\t\t\"quantity\": 3,\n\t\t\t\t\t\"amount\": 200000.00,\n\t\t\t\t\t\"total\": 600000.00\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"productId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9c\",\n\t\t\t\t\t\"quantity\": 1,\n\t\t\t\t\t\"amount\": 100000.00,\n\t\t\t\t\t\"total\": 100000.00\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"created\": \"2014-03-30T11:23:01.000Z\"\n\t\t},\n\t\t{\n\t\t\t\"_id\": \"333567bd-6ef7-40fa-9337-a53db6f38e94\",\n\t\t\t\"customerId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9a\",\n\t\t\t\"title\": \"My Purchase Order\",\n\t\t\t\"description\": \"My description....\",\n\t\t\t\"amount\": 1000001.00,\n\t\t\t\"lineItems\": [{\n\t\t\t\t\t\"productId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9b\",\n\t\t\t\t\t\"quantity\": 3,\n\t\t\t\t\t\"amount\": 300000.00,\n\t\t\t\t\t\"total\": 900000.00\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"productId\": \"033567bd-6ef7-40fa-9337-a53db6f38e9c\",\n\t\t\t\t\t\"quantity\": 1,\n\t\t\t\t\t\"amount\": 100001.00,\n\t\t\t\t\t\"total\": 100001.00\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"created\": \"2014-03-30T11:23:01.000Z\"\n\t\t}\n\t]\n}"
+      "example" : "{\n  \"_id\": \"77ddb2a9-dcc1-490d-8d35-25202a0bcea0\",\n  \"latest\": {\n    \"version\": \"333cc53e-5935-4366-a233-a22aa7840773\",\n    \"mimeType\": \"text/vtt\",\n    \"disposition\": \"inline\",\n    \"secure\": true,\n    \"url\": \"http://localhost:3000/cdn/content/77ddb2a9-dcc1-490d-8d35-25202a0bcea0/1a3cc53e-5935-4366-a233-a22aa7840773\",\n    \"deleted\": false,\n    \"modified\": \"2018-01-29T17:56:08.177Z\",\n    \"modifiedBy\": \"02d29ccd-70b6-4a88-a775-d68bc0b1cf66\",\n    \"_id\": \"77ddb2a9-dcc1-490d-8d35-25202a0bcea0\",\n    \"created\": \"2018-01-29T17:56:08.177Z\",\n    \"createdBy\": \"02d29ccd-70b6-4a88-a775-d68bc0b1cf66\"\n  },\n  \"previousVersions\": [\n    {\n      \"version\": \"111cc53e-5935-4366-a233-a22aa7840773\",\n      \"mimeType\": \"text/vtt\",\n      \"disposition\": \"inline\",\n      \"secure\": true,\n      \"url\": \"http://localhost:3000/cdn/content/77ddb2a9-dcc1-490d-8d35-25202a0bcea0/1a3cc53e-5935-4366-a233-a22aa7840773\",\n      \"deleted\": false,\n      \"modified\": \"2018-01-29T17:56:08.177Z\",\n      \"modifiedBy\": \"02d29ccd-70b6-4a88-a775-d68bc0b1cf66\",\n      \"_id\": \"77ddb2a9-dcc1-490d-8d35-25202a0bcea0\",\n      \"created\": \"2018-01-29T17:56:08.177Z\",\n      \"createdBy\": \"02d29ccd-70b6-4a88-a775-d68bc0b1cf66\"\n    },\n    {\n      \"version\": \"222cc53e-5935-4366-a233-a22aa7840773\",\n      \"mimeType\": \"text/vtt\",\n      \"disposition\": \"inline\",\n      \"secure\": true,\n      \"url\": \"http://localhost:3000/cdn/content/77ddb2a9-dcc1-490d-8d35-25202a0bcea0/1a3cc53e-5935-4366-a233-a22aa7840773\",\n      \"deleted\": false,\n      \"modified\": \"2018-01-29T17:56:08.177Z\",\n      \"modifiedBy\": \"02d29ccd-70b6-4a88-a775-d68bc0b1cf66\",\n      \"_id\": \"77ddb2a9-dcc1-490d-8d35-25202a0bcea0\",\n      \"created\": \"2018-01-29T17:56:08.177Z\",\n      \"createdBy\": \"02d29ccd-70b6-4a88-a775-d68bc0b1cf66\"\n    }\n  ]\n}"
     }
   }
 }
