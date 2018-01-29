@@ -323,39 +323,53 @@
     },
     "CdnFile" : {
       "type" : "object",
+      "required" : [ "secure" ],
       "properties" : {
         "_id" : {
-          "type" : "string"
+          "type" : "string",
+          "description" : "UUID"
         },
         "version" : {
-          "type" : "string"
+          "type" : "string",
+          "description" : "UUID"
         },
         "mimeType" : {
-          "type" : "string"
+          "type" : "string",
+          "description" : "Mime-type of content."
         },
         "disposition" : {
-          "type" : "string"
+          "type" : "string",
+          "description" : "Content disposition.",
+          "default" : "inline",
+          "enum" : [ "inline", "attachment" ]
         },
         "secure" : {
-          "type" : "boolean"
+          "type" : "boolean",
+          "description" : "Indicates if content requires valid authentication token."
         },
         "url" : {
-          "type" : "string"
+          "type" : "string",
+          "description" : "Externally accessible URL for content."
         },
         "deleted" : {
-          "type" : "boolean"
+          "type" : "boolean",
+          "description" : "Indicates if file has been soft deleted."
         },
         "created" : {
-          "type" : "string"
+          "type" : "string",
+          "format" : "date-time"
         },
         "createdBy" : {
-          "type" : "string"
+          "type" : "string",
+          "description" : "UUID"
         },
         "modified" : {
-          "type" : "string"
+          "type" : "string",
+          "format" : "date-time"
         },
         "modifiedBy" : {
-          "type" : "string"
+          "type" : "string",
+          "description" : "UUID"
         }
       },
       "description" : "File info for files stored in CDN",
@@ -365,7 +379,8 @@
       "type" : "object",
       "properties" : {
         "_id" : {
-          "type" : "string"
+          "type" : "string",
+          "description" : "UUID"
         },
         "latest" : {
           "$ref" : "#/definitions/CdnFile"
