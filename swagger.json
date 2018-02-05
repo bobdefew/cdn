@@ -157,14 +157,14 @@
           "200" : {
             "description" : "Status 200",
             "schema" : {
-              "required" : [ "result" ],
               "type" : "object",
               "properties" : {
                 "result" : {
                   "type" : "string",
                   "enum" : [ "SUCCESS" ]
                 }
-              }
+              },
+              "required" : [ "result" ]
             },
             "examples" : {
               "application/json" : "{\"result\":\"SUCCESS\"}"
@@ -210,7 +210,7 @@
     },
     "/files/sec/{filepath}" : {
       "get" : {
-        "summary" : "Get a secured file",
+        "summary" : "Get a secured file content",
         "parameters" : [ ],
         "responses" : {
           "200" : {
@@ -231,7 +231,7 @@
     },
     "/files/pub/{filepath}" : {
       "get" : {
-        "summary" : "Get an unsecured file",
+        "summary" : "Get an unsecured file content",
         "parameters" : [ ],
         "responses" : {
           "200" : {
@@ -269,7 +269,6 @@
           "type" : "array",
           "description" : "This must contain one or more errors in the errors array.",
           "items" : {
-            "required" : [ "code" ],
             "type" : "object",
             "properties" : {
               "code" : {
@@ -288,7 +287,8 @@
                   "type" : "string"
                 }
               }
-            }
+            },
+            "required" : [ "code" ]
           }
         }
       },
