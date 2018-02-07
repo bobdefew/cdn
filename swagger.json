@@ -208,7 +208,7 @@
         "type" : "string"
       } ]
     },
-    "/files/sec/{filepath}" : {
+    "/files/sec/{filepath+}" : {
       "get" : {
         "summary" : "Get a secured file content",
         "parameters" : [ ],
@@ -223,13 +223,13 @@
         }
       },
       "parameters" : [ {
-        "name" : "filepath",
+        "name" : "filepath+",
         "in" : "path",
         "required" : true,
         "type" : "string"
       } ]
     },
-    "/files/pub/{filepath}" : {
+    "/files/pub/{filepath+}" : {
       "get" : {
         "summary" : "Get an unsecured file content",
         "parameters" : [ ],
@@ -245,7 +245,7 @@
         "security" : [ ]
       },
       "parameters" : [ {
-        "name" : "filepath",
+        "name" : "filepath+",
         "in" : "path",
         "required" : true,
         "type" : "string"
